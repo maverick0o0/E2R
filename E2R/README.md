@@ -15,6 +15,10 @@
 
 The crown jewel of E2R is its **AI Workbench**. Using local or cloud-based LLMs, E2R parses the surrounding JavaScript code context of a discovered endpoint and **reconstructs a fully valid, raw HTTP request** (complete with realistic parameters, headers, and request bodies) ready to be tested in Burp Repeater or Intruder.
 
+> [!IMPORTANT]
+> **CRITICAL SCOPE REQUIREMENT**:
+> For E2R to passively process traffic or run active scans, the target domain **MUST be added to Burp Suite's Target Scope** (`Target` -> `Scope`). E2R strictly ignores all traffic, domains, and files outside of the defined target scope to maintain maximum performance and filter out unrelated third-party noise.
+
 ---
 
 ## 🔍 How E2R Works (Under the Hood)
@@ -23,7 +27,7 @@ E2R functions as an intelligent interceptor and scanner that operates seamlessly
 
 ### The Execution Pipeline:
 
-1. **Traffic Interception & Scope Validation**: The extension intercepts incoming HTTP responses. If a resource is within Burp's **Target Scope**, it proceeds.
+1. **Traffic Interception & Scope Validation**: The extension intercepts incoming HTTP responses. If a resource is within Burp's **Target Scope**, it proceeds. Otherwise, it is instantly ignored.
 2. **MIME & Resource Filtration**: E2R validates if the response is a script (e.g., `.js` file, inside HTML `<script>` tags, JSON responses, or MIME-type scripts). It automatically filters out blacklisted extensions (images, CSS, fonts) and directories (like `/_next/`).
 3. **On-the-Fly Beautification**: Minified JavaScript files are difficult for regex matchers and LLMs to read. E2R's internal **Beautifier** expands and formats minified code in-memory. This ensures accurate line number tracking and highly readable code contexts for the LLM.
 4. **Pattern & Entropy Extraction**: Multi-threaded scanner engines parse the beautified code using tuned, false-positive-resistant regex patterns to identify:
@@ -190,21 +194,37 @@ Set up your preferred AI provider in the **Settings** tab:
 
 ---
 
+## ⚠️ Troubleshooting Ollama 404 Error
+
+If you click **Test Connection** in the Settings tab and see `✓ Connected to Ollama (Local)`, but when generating a request in the Workbench you receive:
+```text
+Error generating request:
+
+Ollama error: 404 Not Found
+```
+Please verify the following three items to resolve the issue:
+
+1. **Verify Pulled Model Name**: Ollama returns `404 Not Found` if the model specified in E2R Settings does not exist or has not been pulled.
+2. **Check Model Spelling**: Run `ollama list` in your terminal to see the exact downloaded names. Ensure the model name in E2R Settings matches the `NAME` column of `ollama list` exactly (e.g. `qwen2.5-coder:7b` instead of just `qwen2.5-coder`).
+3. **Pull the Model**: If the model is missing, run `ollama pull <model-name>` (e.g. `ollama pull qwen2.5-coder:7b`) in your terminal.
+
+---
+
 ## 🚀 Step-by-Step Security Research Workflow
 
 Maximize your reconnaissance efficiency using this recommended workflow:
 
 ### Step 1: Passive Observation
-1. Add your target domain to Burp's **Target Scope** (e.g., `https://example.com`).
-2. Turn on your browser proxy and navigate through the target application.
-3. As you click around, E2R automatically intercept and scans any incoming `.js` file or embedded script in real-time.
-4. Go to **E2R** -> **Live Discovery** to watch findings populate.
+1. **Critical Scope Setup**: Add your target domain to Burp's **Target Scope** (`Target` -> `Scope`).
+2. **Proxy Traffic**: Turn on your browser proxy and navigate through the target application.
+3. **Passive Scans**: As you click around, E2R automatically intercept and scans any incoming `.js` file or embedded script in real-time.
+4. **View Findings**: Go to **E2R** -> **Live Discovery** to watch findings populate.
 
 ### Step 2: Target Scope Re-Scanning
-1. If you've just loaded E2R or want to scan your entire site map at once, go to Burp's **Target** -> **Site Map**.
-2. Right-click on the target domain folder.
-3. Select **Extensions** -> **E2R: Scan for Endpoints, Secrets & Files**.
-4. E2R will actively query and re-scan every cached JavaScript file in the selected directory.
+1. **Site Map Scan**: Go to Burp's **Target** -> **Site Map**.
+2. **Right-Click**: Right-click on the target domain folder (ensure it is in Scope!).
+3. **Trigger Scan**: Select **Extensions** -> **E2R: Scan for Endpoints, Secrets & Files**.
+4. **Analysis**: E2R will actively query and re-scan every cached JavaScript file in the selected directory.
 
 ### Step 3: AI Request Generation
 1. Go to the **E2R** tab -> **AI Workbench**.
