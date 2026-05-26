@@ -1,0 +1,26 @@
+# Git backup
+.git_backup
+E2R/.git_backup/
+
+# Build artifacts
+E2R/build/
+E2R/.gradle/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+E2R/.idea/
+E2R/*.iml
+E2R/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+E2R/.DS_Store
+E2R/Thumbs.db
+
+# Logs
+*.log
+E2R/*.log

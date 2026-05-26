@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.e2r'
+version = '1.2.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Burp Suite Montoya API
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2024.12'
+    
+    // JSON parsing
+    implementation 'com.google.code.gson:gson:2.11.0'
+    
+    // HTTP client for Ollama API
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'E2R - Endpoint To Request',
+            'Implementation-Version': version
+        )
+    }
+}
+
+// Output JAR to release directory
+tasks.jar {
+    destinationDirectory = file("$projectDir/release")
+    archiveBaseName = 'E2R'
+}
