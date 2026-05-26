@@ -127,10 +127,32 @@ public class GroqProvider implements AiProvider {
                 .build();
             
             try (Response response = client.newCall(request).execute()) {
-                return response.isSuccessful();
+                String responseBody = response.body().string();
+                
+                if (response.code() == 401) {
+                    throw new RuntimeException("Invalid API Key - please check your Groq API key in Settings");
+                }
+                
+                if (!response.isSuccessful()) {
+                    try {
+                        JsonObject errorJson = gson.fromJson(responseBody, JsonObject.class);
+                        if (errorJson.has("error")) {
+                            JsonObject error = errorJson.getAsJsonObject("error");
+                            String message = error.has("message") ? error.get("message").getAsString() : "Unknown error";
+                            throw new RuntimeException("Groq API error: " + message);
+                        }
+                    } catch (Exception parseError) {
+                        // Ignore parse error
+                    }
+                    throw new RuntimeException("Groq server returned status " + response.code() + " " + response.message());
+                }
+                
+                return true;
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException("Connection to Groq failed: " + e.getMessage(), e);
         }
     }
     

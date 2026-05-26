@@ -124,10 +124,40 @@ public class GeminiProvider implements AiProvider {
                 .build();
             
             try (Response response = client.newCall(request).execute()) {
-                return response.isSuccessful();
+                String responseBody = response.body().string();
+                
+                if (response.code() == 401) {
+                    throw new RuntimeException("Invalid API Key - please check your Gemini API key in Settings");
+                }
+                
+                if (!response.isSuccessful()) {
+                    try {
+                        JsonObject errorJson = gson.fromJson(responseBody, JsonObject.class);
+                        if (errorJson.has("error")) {
+                            JsonObject error = errorJson.getAsJsonObject("error");
+                            String message = error.has("message") ? error.get("message").getAsString() : "Unknown error";
+                            throw new RuntimeException("Gemini API error: " + message);
+                        }
+                    } catch (Exception parseError) {
+                        // Ignore parse error
+                    }
+                    
+                    if (response.code() == 404) {
+                        throw new RuntimeException("Gemini server returned status 404 Not Found. This usually means:\n" +
+                            "1. The model '" + model + "' is not supported/enabled for your API key (try 'gemini-1.5-flash').\n" +
+                            "2. The API key is invalid or has expired.\n" +
+                            "3. Your region is not supported by Google AI Studio.");
+                    }
+                    
+                    throw new RuntimeException("Gemini server returned status " + response.code() + " " + response.message());
+                }
+                
+                return true;
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException("Connection to Gemini failed: " + e.getMessage(), e);
         }
     }
     

@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Burp_Suite-Extension-orange?style=for-the-badge" alt="Burp Extension">
   <img src="https://img.shields.io/badge/Java-17+-blue?style=for-the-badge" alt="Java 17+">
-  <img src="https://img.shields.io/badge/AI-Ollama%20%7C%20Groq%20%7C%20Gemini%20%7C%20OpenAI-green?style=for-the-badge" alt="AI Powered">
+  <img src="https://img.shields.io/badge/AI-Ollama%20%7C%20Groq%20%7C%20Gemini-green?style=for-the-badge" alt="AI Powered">
   <img src="https://img.shields.io/badge/API-Montoya_API-red?style=for-the-badge" alt="Montoya API">
 </p>
 
@@ -73,7 +73,7 @@ graph TD
     P --> Q[PromptBuilder]
     Q -->|Formulate Prompt| R[AI Provider Interface]
     R -->|Local Inference| S[Ollama Provider]
-    R -->|Cloud Inference| T[Groq / Gemini / OpenAI Providers]
+    R -->|Cloud Inference| T[Groq / Gemini Providers]
     S & T -->|Response Parser| U[Generated Valid HTTP Request]
     U --> V[Burp Suite Request Editor / Repeater]
 ```
@@ -87,7 +87,7 @@ sequenceDiagram
     participant UI as AI Workbench Panel
     participant Ext as Context Extractor
     participant PB as Prompt Builder
-    participant Provider as AI Provider (Ollama/Groq/Gemini/GPT)
+    participant Provider as AI Provider (Ollama/Groq/Gemini)
     participant Burp as Burp Suite Editor
 
     User->>UI: Selects endpoint & Clicks "Generate Request"
@@ -107,30 +107,46 @@ sequenceDiagram
 ## ✨ Features
 
 ### 1. Unified Live Discovery Dashboard
-A clean, tabbed panel that organizes passive scanning findings into categorized tables:
-* **Endpoints**: API routes extracted from Javascript code.
-* **URLs**: External URLs that might reveal third-party services or API backends.
+A clean, tabbed panel that organizes passive scanning findings into categorized tables. It automatically parses JavaScript files to discover and group:
+
+* **Endpoints**: API routes and relative paths extracted from client-side routers or fetch calls.
+  ![Endpoints](media/live_discovery.png)
+  
+* **URLs**: External absolute URLs showing third-party integrations and backend endpoints.
+  ![URLs](media/url_feature.png)
+  
 * **Secrets**: API keys, AWS credentials, auth tokens, Slack webhooks, and private keys.
-* **Emails**: Developer, administrator, or support email addresses.
-* **Files**: References to sensitive file extensions (e.g. `.sql`, `.conf`, `.env`, `.bak`).
-* **Parameters**: Query and body parameters mapped from client-side routers or Ajax calls.
-* **Sources & Sinks**: Real-time DOM XSS analysis highlighting dangerous inputs (Sources) and outputs (Sinks).
+  ![Secrets](media/secret_feature.png)
+  
+* **Emails**: Support, developer, and administrator emails.
+  
+* **Files**: References to sensitive file extensions (e.g., `.sql`, `.conf`, `.env`, `.bak`).
+  ![Files](media/file_feature.png)
+  
+* **Parameters**: Query and body parameters mapped from JavaScript objects.
+  ![Parameters](media/parameter_feature.png)
+  
+* **DOM Sources & Sinks**: DOM properties vulnerable to Client-Side XSS, highlighting inputs (Sources) and outputs (Sinks).
+  ![DOM Sources](media/source_feature.png)
+  ![DOM Sinks](media/sink_feature.png)
 
 ### 2. Live Context Viewer
 Select any discovered item to immediately view the file URL, host, exact matching line, and the **surrounding code block** in a syntax-highlighted console. Know exactly how the endpoint or secret is utilized.
 
 ### 3. Fully Configurable Filters (Settings Panel)
-Fine-tune E2R's detection criteria directly from the **Settings** tab:
+Fine-tune E2R's detection criteria directly from the **Settings** tab. Add or remove custom patterns dynamically:
 * **Extension Blacklist**: Prevent static media or styling files (like `.png`, `.css`, `.woff2`) from cluttering your results.
 * **Path Blacklist**: Discard noise from specific paths (e.g., `/_next/`, `/static/js/`, `/node_modules/`).
-* *Both lists come pre-configured with industry-standard defaults and can be reset at any time.*
+![Settings](media/settings.png)
+![Filters](media/extension_filtering_feature.png)
 
 ### 4. Advanced AI Workbench
-E2R supports **four major AI providers** with multiple model presets, including custom model inputs and real-time connectivity testers:
+E2R supports **three major AI providers** with multiple model presets, including custom model inputs and real-time connectivity testers:
 1. **Ollama (Local/Offline)**: 100% private, no data leaves your machine. Mapped to speed-optimized coding models like `qwen2.5-coder:7b`.
 2. **Groq (Lightning-Fast Cloud)**: Fast, free-tier cloud endpoints using models like `llama-3.3-70b-versatile`.
 3. **Google Gemini (Deep Context)**: Perfect for handling extremely large JS context windows using models like `gemini-1.5-flash` or `gemini-2.5-flash`.
-4. **OpenAI GPT (Premium Accuracy)**: Industry-standard request formatting accuracy using models like `gpt-4o-mini` or `gpt-4o`.
+
+![AI Workbench](media/ai_workbench.png)
 
 ---
 
@@ -187,10 +203,6 @@ Set up your preferred AI provider in the **Settings** tab:
 ### 3. Google Gemini
 * **Setup**: Obtain an API Key from the Google AI Studio.
 * **Configuration**: Select **Gemini (Cloud)**, input your API key, and choose `gemini-1.5-flash`.
-
-### 4. OpenAI GPT
-* **Setup**: Obtain an API Key from your OpenAI Platform account.
-* **Configuration**: Select **OpenAI (GPT)**, input your API key, and choose `gpt-4o-mini` (highly cost-effective and accurate).
 
 ---
 

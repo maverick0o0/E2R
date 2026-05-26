@@ -90,10 +90,43 @@ public class OllamaProvider implements AiProvider {
                 .build();
             
             try (Response response = client.newCall(request).execute()) {
-                return response.isSuccessful();
+                if (!response.isSuccessful()) {
+                    throw new RuntimeException("Ollama server returned status " + response.code() + " " + response.message());
+                }
+                
+                String responseBody = response.body().string();
+                JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
+                
+                if (jsonResponse.has("models")) {
+                    JsonArray modelsArray = jsonResponse.getAsJsonArray("models");
+                    String targetModel = model.trim().toLowerCase();
+                    String targetModelWithLatest = targetModel.contains(":") ? targetModel : targetModel + ":latest";
+                    
+                    boolean found = false;
+                    for (int i = 0; i < modelsArray.size(); i++) {
+                        JsonObject modelObj = modelsArray.get(i).getAsJsonObject();
+                        if (modelObj.has("name")) {
+                            String modelName = modelObj.get("name").getAsString().trim().toLowerCase();
+                            if (modelName.equals(targetModel) || modelName.equals(targetModelWithLatest)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!found) {
+                        throw new RuntimeException("Model '" + model + "' not found locally in Ollama. Please run 'ollama pull " + model + "' in your terminal.");
+                    }
+                } else {
+                    throw new RuntimeException("Ollama returned invalid tags response (missing models array)");
+                }
+                
+                return true;
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException("Cannot connect to Ollama server at " + baseUrl + ". Make sure Ollama is running.", e);
         }
     }
     

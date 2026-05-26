@@ -8,7 +8,6 @@ import e2r.ai.AiProvider;
 import e2r.ai.OllamaProvider;
 import e2r.ai.GroqProvider;
 import e2r.ai.GeminiProvider;
-import e2r.ai.GptProvider;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,12 +28,10 @@ public class SettingsPanel extends JPanel {
     private static final String PROVIDER_OLLAMA = "Ollama (Local)";
     private static final String PROVIDER_GROQ = "Groq (Cloud)";
     private static final String PROVIDER_GEMINI = "Gemini (Cloud)";
-    private static final String PROVIDER_GPT = "OpenAI (GPT)";
     
     // Memory storage for keys during UI switching
     private String groqApiKey = "";
     private String geminiApiKey = "";
-    private String gptApiKey = "";
     private String lastSelectedProvider = PROVIDER_OLLAMA;
     
     // Ollama settings
@@ -64,7 +61,6 @@ public class SettingsPanel extends JPanel {
     private static final String PREF_OLLAMA_URL = "e2r.ollama.url";
     private static final String PREF_GROQ_API_KEY = "e2r.groq.apikey";
     private static final String PREF_GEMINI_API_KEY = "e2r.gemini.apikey";
-    private static final String PREF_GPT_API_KEY = "e2r.gpt.apikey";
     private static final String PREF_MODEL = "e2r.model";
     
     // Default values
@@ -72,7 +68,6 @@ public class SettingsPanel extends JPanel {
     private static final String DEFAULT_OLLAMA_MODEL = "qwen2.5-coder:7b";
     private static final String DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
     private static final String DEFAULT_GEMINI_MODEL = "gemini-1.5-flash";
-    private static final String DEFAULT_GPT_MODEL = "gpt-4o-mini";
     
     // Available models
     private static final String[] GROQ_MODELS = {
@@ -97,12 +92,7 @@ public class SettingsPanel extends JPanel {
         "gemini-2.5-flash"
     };
     
-    private static final String[] GPT_MODELS = {
-        "gpt-4o-mini",
-        "gpt-4o",
-        "gpt-4-turbo",
-        "gpt-3.5-turbo"
-    };
+
     
     public SettingsPanel(MontoyaApi api) {
         this.api = api;
@@ -129,7 +119,7 @@ public class SettingsPanel extends JPanel {
         gbc.gridx = 1; gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        providerCombo = new JComboBox<>(new String[]{PROVIDER_OLLAMA, PROVIDER_GROQ, PROVIDER_GEMINI, PROVIDER_GPT});
+        providerCombo = new JComboBox<>(new String[]{PROVIDER_OLLAMA, PROVIDER_GROQ, PROVIDER_GEMINI});
         providerCombo.addActionListener(e -> updateProviderUI());
         aiPanel.add(providerCombo, gbc);
         
@@ -200,7 +190,7 @@ public class SettingsPanel extends JPanel {
         // Available Groq models hint
         gbc.gridx = 0; gbc.gridy = 6;
         gbc.gridwidth = 2;
-        JLabel modelsHint = new JLabel("<html><small>Models: Groq (llama-3.3-70b-versatile), Gemini (gemini-1.5-flash), GPT (gpt-4o-mini)</small></html>");
+        JLabel modelsHint = new JLabel("<html><small>Models: Groq (llama-3.3-70b-versatile), Gemini (gemini-1.5-flash)</small></html>");
         modelsHint.setForeground(Color.GRAY);
         aiPanel.add(modelsHint, gbc);
         
@@ -280,9 +270,10 @@ public class SettingsPanel extends JPanel {
         aboutPanel.setBorder(BorderFactory.createTitledBorder("About E2R"));
         
         JTextArea aboutText = new JTextArea(
-            "E2R (Endpoint To Request) v" + E2RExtension.VERSION + "\n\n" +
+            "E2R (Endpoint To Request) v" + E2RExtension.VERSION + "\n" +
+            "By Erfan Tavakoli - Maverick0o0\n\n" +
             "AI-powered endpoint discovery and request generation.\n" +
-            "Supports Ollama (local) and Groq (cloud) providers."
+            "Supports Ollama (local), Groq (cloud), and Gemini (cloud) providers."
         );
         aboutText.setEditable(false);
         aboutText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -315,8 +306,7 @@ public class SettingsPanel extends JPanel {
             geminiApiKey = prefs.getString(PREF_GEMINI_API_KEY);
             if (geminiApiKey == null) geminiApiKey = "";
             
-            gptApiKey = prefs.getString(PREF_GPT_API_KEY);
-            if (gptApiKey == null) gptApiKey = "";
+
             
             // Load provider
             String provider = prefs.getString(PREF_PROVIDER);
@@ -339,8 +329,6 @@ public class SettingsPanel extends JPanel {
                 groqApiKeyField.setText(groqApiKey);
             } else if (PROVIDER_GEMINI.equals(provider)) {
                 groqApiKeyField.setText(geminiApiKey);
-            } else if (PROVIDER_GPT.equals(provider)) {
-                groqApiKeyField.setText(gptApiKey);
             }
             
             // Load model
@@ -367,8 +355,6 @@ public class SettingsPanel extends JPanel {
                 groqApiKey = currentKey;
             } else if (selectedProvider.equals(PROVIDER_GEMINI)) {
                 geminiApiKey = currentKey;
-            } else if (selectedProvider.equals(PROVIDER_GPT)) {
-                gptApiKey = currentKey;
             }
             
             // Save provider
@@ -380,7 +366,7 @@ public class SettingsPanel extends JPanel {
             // Save API Keys
             prefs.setString(PREF_GROQ_API_KEY, groqApiKey);
             prefs.setString(PREF_GEMINI_API_KEY, geminiApiKey);
-            prefs.setString(PREF_GPT_API_KEY, gptApiKey);
+
             
             // Save model
             prefs.setString(PREF_MODEL, (String) modelCombo.getSelectedItem());
@@ -413,8 +399,6 @@ public class SettingsPanel extends JPanel {
                 groqApiKey = currentKey;
             } else if (lastSelectedProvider.equals(PROVIDER_GEMINI)) {
                 geminiApiKey = currentKey;
-            } else if (lastSelectedProvider.equals(PROVIDER_GPT)) {
-                gptApiKey = currentKey;
             }
         }
         
@@ -433,9 +417,6 @@ public class SettingsPanel extends JPanel {
         } else if (PROVIDER_GEMINI.equals(selectedProvider)) {
             groqApiKeyLabel.setText("Gemini API Key:");
             groqApiKeyField.setText(geminiApiKey);
-        } else if (PROVIDER_GPT.equals(selectedProvider)) {
-            groqApiKeyLabel.setText("OpenAI API Key:");
-            groqApiKeyField.setText(gptApiKey);
         }
         
         // Track last selected provider
@@ -472,15 +453,6 @@ public class SettingsPanel extends JPanel {
             } else {
                 modelCombo.setSelectedItem(DEFAULT_GEMINI_MODEL);
             }
-        } else if (PROVIDER_GPT.equals(selectedProvider)) {
-            for (String model : GPT_MODELS) {
-                modelCombo.addItem(model);
-            }
-            if (currentModel != null && isModelForProvider(currentModel, PROVIDER_GPT)) {
-                modelCombo.setSelectedItem(currentModel);
-            } else {
-                modelCombo.setSelectedItem(DEFAULT_GPT_MODEL);
-            }
         }
         
         // Reset connection status
@@ -492,7 +464,7 @@ public class SettingsPanel extends JPanel {
         if (provider.equals(PROVIDER_OLLAMA)) models = OLLAMA_MODELS;
         else if (provider.equals(PROVIDER_GROQ)) models = GROQ_MODELS;
         else if (provider.equals(PROVIDER_GEMINI)) models = GEMINI_MODELS;
-        else if (provider.equals(PROVIDER_GPT)) models = GPT_MODELS;
+
         else return false;
         
         for (String m : models) {
@@ -515,8 +487,6 @@ public class SettingsPanel extends JPanel {
             return new GroqProvider(apiKey, model);
         } else if (PROVIDER_GEMINI.equals(selectedProvider)) {
             return new GeminiProvider(apiKey, model);
-        } else if (PROVIDER_GPT.equals(selectedProvider)) {
-            return new GptProvider(apiKey, model);
         } else {
             String url = ollamaUrlField.getText().trim();
             return new OllamaProvider(url, model);
@@ -528,7 +498,7 @@ public class SettingsPanel extends JPanel {
      */
     public boolean isCloudProvider() {
         String provider = (String) providerCombo.getSelectedItem();
-        return PROVIDER_GROQ.equals(provider) || PROVIDER_GEMINI.equals(provider) || PROVIDER_GPT.equals(provider);
+        return PROVIDER_GROQ.equals(provider) || PROVIDER_GEMINI.equals(provider);
     }
     
     /**
